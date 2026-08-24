@@ -190,19 +190,17 @@ main { flex:1; display:flex; flex-direction:column; align-items:center; justify-
 .prize-qty { font-size:20px; color:#cbb3f0; margin-top:2px; letter-spacing:2px; }
 .num-slots { flex:1; display:grid; gap:12px; justify-content:center; align-content:center; margin-top:8px; }
 .num-slot {
-  width:auto; height:68px; border-radius:14px; font-size:23px; font-weight:800; letter-spacing:1px;
+  width:auto; height:68px; border-radius:14px; font-size:29px; font-weight:800; letter-spacing:1px;
   background:rgba(10,4,24,.55); border:2px dashed rgba(200,160,255,.45); color:#e9dcff;
   display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums;
   white-space:nowrap; overflow:hidden; padding:0 4px;
 }
-.num-slot::before { content:"No. "; font-size:.55em; font-weight:600; opacity:.75; margin-right:3px; }
-.num-slot.empty::before { content:""; }
 .num-slot.empty { font-size:28px; color:#cdb6f2; }
 /* 数量多时缩小槽位 */
-.card-m .num-slot { height:64px; font-size:19px; }
-.card-s .num-slot { height:58px; font-size:15px; padding:0 2px; }
+.card-m .num-slot { height:64px; font-size:24px; }
+.card-s .num-slot { height:58px; font-size:18px; padding:0 2px; }
 .card-xs .num-slots { gap:8px; }
-.card-xs .num-slot { height:50px; font-size:15px; padding:0 2px; }
+.card-xs .num-slot { height:50px; font-size:19px; padding:0 2px; }
 .num-slot.rolling { color:#ffe9a8; border-color:#ffe9a8; box-shadow:0 0 24px rgba(255,220,120,.35); }
 .num-slot.win {
   background:linear-gradient(135deg,rgba(255,210,90,.22),rgba(255,170,40,.12));
@@ -833,7 +831,7 @@ function renderClosing(){
     let html = `<div class="rhead">第 ${["一","二","三"][r-1]} 轮</div>`;
     for (const d of recs){
       const prize = ROUNDS[r-1].prizes.find(p => p.tier === d.tier);
-      html += `<div style="margin-bottom:10px;"><b>[${d.tier}] ${(prize ? prize.name : "").replace(/\n/g," ")}</b><br>${d.nums.map(fmtTicket).join("  ")}</div>`;
+      html += `<div style="margin-bottom:10px;"><b>[${d.tier}] ${(prize ? prize.name : "").replace(/\n/g," ")}</b><br>${d.nums.join("  ")}</div>`;
     }
     col.innerHTML = html;
     w.appendChild(col);
