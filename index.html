@@ -186,12 +186,15 @@ main { flex:1; display:flex; flex-direction:column; align-items:center; justify-
 .card-s .num-slot { height:58px; font-size:18px; padding:0 10px; }
 .card-xs .num-slots { gap:8px; }
 .card-xs .num-slot { height:50px; font-size:19px; padding:0 10px; }
-/* 一轮 5 个奖品(第三轮)时压缩卡片与槽位 */
+/* 一轮 5 个奖品(第三轮)时:韶音窄卡 + 大额卡大格子竖排 */
 .grid5 { gap:18px; }
-.grid5 .prize-card { padding:14px 14px 16px; }
-.grid5 .num-slots { gap:8px; }
-.grid5 .num-slot { padding:0 6px; letter-spacing:0; }
-.grid5 .prize-img-frame { width:170px; height:104px; }
+.grid5 .prize-card { padding:10px 14px 12px; flex:1.15 1 0; min-width:360px; max-width:none; }
+.grid5 .prize-card.narrow { flex:0.55 1 0; min-width:210px; max-width:260px; }
+.grid5 .num-slots { gap:6px; margin-top:6px; }
+.grid5 .num-slot { height:46px; padding:0 6px; letter-spacing:0; border-radius:10px; }
+.grid5 .prize-img-frame { width:150px; height:96px; margin:8px auto 2px; }
+.grid5 .narrow .prize-img-frame { width:118px; height:76px; }
+.grid5 .prize-name { font-size:24px; min-height:66px; letter-spacing:1px; margin-top:4px; }
 .num-slot.rolling { color:#ffe9a8; border-color:#ffe9a8; box-shadow:0 0 24px rgba(255,220,120,.35); }
 .num-slot.win {
   background:linear-gradient(135deg,rgba(255,210,90,.22),rgba(255,170,40,.12));
@@ -576,15 +579,29 @@ function renderRound(n){
       <div class="prize-qty">共 ${p.qty} 份</div>
       <div class="num-slots"></div>`;
     const slots = card.querySelector(".num-slots");
-    // 号码网格:4个=2x2,3个=1x3,其余也排成整齐行列(不出现 2+1/3+1 这种散行)
-    const cols = p.qty === 3 ? 3 : p.qty <= 2 ? p.qty : p.qty <= 4 ? 2 : p.qty <= 6 ? 3 : p.qty <= 8 ? 4 : 5;
-    slots.style.gridTemplateColumns = (cols <= 3 && p.qty <= 4)
-      ? `repeat(${cols}, 160px)`
-      : `repeat(${cols}, minmax(0, 1fr))`;
+    const grid5 = prizeGrid.classList.contains("grid5");
+    let cols;
+    if (grid5){
+      // 第三轮:韶音窄卡(1列);大额卡大格子竖排 10→2列、15→3列、20→4列,全部 5 行
+      if (p.qty <= 2){ cols = 1; card.classList.add("narrow"); }
+      else if (p.qty <= 10){ cols = 2; }
+      else if (p.qty <= 15){ cols = 3; }
+      else { cols = 4; }
+      slots.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    } else {
+      // 号码网格:4个=2x2,3个=1x3,其余也排成整齐行列(不出现 2+1/3+1 这种散行)
+      cols = p.qty === 3 ? 3 : p.qty <= 2 ? p.qty : p.qty <= 4 ? 2 : p.qty <= 6 ? 3 : p.qty <= 8 ? 4 : 5;
+      slots.style.gridTemplateColumns = (cols <= 3 && p.qty <= 4)
+        ? `repeat(${cols}, 160px)`
+        : `repeat(${cols}, minmax(0, 1fr))`;
+    }
     for (let i = 0; i < p.qty; i++){
       const s = document.createElement("div");
       s.className = "num-slot empty";
       s.textContent = "?";
+      if (grid5){
+        s.style.fontSize = (p.qty <= 2 ? 29 : p.qty <= 15 ? 30 : 24) + "px";
+      }
       slots.appendChild(s);
     }
     prizeGrid.appendChild(card);
