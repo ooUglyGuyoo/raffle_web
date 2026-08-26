@@ -37,6 +37,7 @@ wall = Image.open(os.path.join(SRC, "logos", "sponsor-wall.png")).convert("RGB")
 tiles = {
     "csl":         (332, 782, 527, 849),
     "Shokz韶音":    (110, 872, 305, 939),
+    "蒙牛":         (552, 962, 747, 1029),
     "香港科技大学图书馆": (775, 555, 971, 621),
 }
 
@@ -91,6 +92,7 @@ for key, (x0, y0, x1, y1) in tiles.items():
                 r, g, b, a = px[x, y]
                 if a:
                     px[x, y] = (255, 255, 255, a)
+    # 蒙牛: 保留品牌原色(绿/黑)
     tile = trim_alpha(tile)
     tile = round_corners(tile)
     tile.thumbnail((1000, 140), Image.LANCZOS)
@@ -102,13 +104,14 @@ for key, (x0, y0, x1, y1) in tiles.items():
 prize_map = [
     ("抽湿机",                          "prizes/dehumidifier.jpg",       (400, 300)),
     ("手持除螨吸尘仪",                    "prizes/mite-vacuum.jpg",        (400, 300)),
-    ("肩颈按摩仪",                        "prizes/massager.jpg",           (400, 300)),
-    ("小米手环",                          "prizes/xiaomi-band.jpg",        (400, 300)),
+    ("肩颈按摩仪",                        "prizes/massager.png",           (400, 300)),
+    ("小米手环",                          "prizes/xiaomi-band.png",        (400, 300)),
     ("csl 留学生专属 5G 月费计划\n全年免费", "prizes/csl-5g-plan.png",        (400, 300)),
     ("华为手表",                          "prizes/huawei-watch.jpg",       (400, 300)),
     ("蓝牙音响",                          "prizes/speaker.jpg",            (400, 300)),
     ("Shokz 韶音 OpenRun Pro2",          "prizes/shokz-openrun-pro2.jpg", (400, 300)),
     ("Shokz 韶音 OpenFit2",              "prizes/shokz-openfit2.jpg",     (400, 300)),
+    ("蒙牛牛奶",                          "prizes/milk.png",               (400, 300)),
     ("三合一充电线",                       "prizes/charging-cable.png",    (400, 300)),
     ("科大图书馆擦镜布",                   "prizes/lens-cloth.png",         (400, 300)),
 ]
