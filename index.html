@@ -322,7 +322,8 @@ footer { flex:none; padding:18px 0 26px; display:flex; align-items:center; justi
 <script>
 "use strict";
 /* ================= 配置 ================= */
-const STORAGE_KEY = "raffle2026_v1";
+const STORAGE_KEY = "raffle2026_v1";        // 抽奖状态(本场次,sessionStorage:关页即清,防跨场叠加)
+const RANGES_KEY = "raffle2026_ranges";     // 号码范围(跨场保留,localStorage)
 const CANVAS_W = 2422, CANVAS_H = 851;
 
 /* ================= 图片素材(注入) ================= */
@@ -385,13 +386,7 @@ function ticketNo(key, n){ return String(catByKey(key).base * 10000 + n); } // 1
 function fmtTicket(t){ return "No. " + t; }
 
 function buildPool(){
-  const ranges = (S && S.ranges) ? S.ranges : DEFAULT_RANGES;
-  const p = [];
-  for (const c of CATS){
-    const [a, b] = ranges[c.key];
-    for (let n = a; n <= b; n++) p.push(ticketNo(c.key, n));
-  }
-  return p;
+  return buildPoolFromRanges(getRanges());
 }
 function shuffle(a){
   const b = a.slice();
@@ -405,21 +400,23 @@ function shuffle(a){
 }
 
 /* ================= 状态持久化 ================= */
+// 抽奖状态用 sessionStorage:同一标签页刷新不丢;关掉标签页/浏览器即开始全新一场,
+// 避免上一场记录残留导致"所有奖项都写了两次"
 let S = load();
 function load(){
   try {
-    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    const s = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
     if (s && Array.isArray(s.pool)) return s;
   } catch(e){}
   return null;
 }
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); }
+function save(){ sessionStorage.setItem(STORAGE_KEY, JSON.stringify(S)); }
 function ensureState(){
   if (!S) { S = { pool: shuffle(buildPool()), drawn: [], started: false }; save(); }
 }
 function resetAll(){
   S = null;
-  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
 }
 function drawnCount(){
   if (!S) return 0;
@@ -462,7 +459,11 @@ function updateRulesText(){
 
 /* ================= 号码范围页 ================= */
 function getRanges(){
-  return (S && S.ranges) ? S.ranges : DEFAULT_RANGES;
+  try {
+    const r = JSON.parse(localStorage.getItem(RANGES_KEY));
+    if (r && CATS.every(c => Array.isArray(r[c.key]) && r[c.key].length === 2)) return r;
+  } catch(e){}
+  return DEFAULT_RANGES;
 }
 function rangeCount(ranges){
   let t = 0;
@@ -517,7 +518,8 @@ function saveRanges(){
   if (rangeCount(ranges) < TOTAL_WINNERS){ alert(`号码总数(${rangeCount(ranges)})少于本轮抽奖需要的 ${TOTAL_WINNERS} 个,请扩大范围`); return; }
   // 确认:修改会重置本场记录
   if (S && S.started && !confirm("已开抽过,修改号码范围会清空已抽记录,确定继续?")) return;
-  S = { pool: shuffle(buildPoolFromRanges(ranges)), drawn: [], started: false, ranges };
+  localStorage.setItem(RANGES_KEY, JSON.stringify(ranges));
+  S = { pool: shuffle(buildPoolFromRanges(ranges)), drawn: [], started: false };
   save();
   renderRanges(false);
   refreshLockStatus();
@@ -683,6 +685,8 @@ function lockNums(prizeName, nums, slots){
 function startRoll(){
   if (phase === "rolling" || phase === "locked") return;
   ensureState();
+  // 该轮已抽过则不再重复抽取(防谢幕页/连按误触发)
+  if (curRound >= 1 && S.drawn.some(d => d.round === curRound)) return;
   const round = ROUNDS[curRound - 1];
   const reveal = prizeCardsRevealOrder(round);
   $("draw-btn").classList.add("hidden");
@@ -856,6 +860,8 @@ let flow = "lock";   // lock -> ranges -> intro -> game
 
 function advance(){
   ensureAudio();
+  // 谢幕页为终态:空格不再触发任何操作
+  if (!screens.closing.classList.contains("hidden")) return;
   if (flow === "ranges"){
     flow = "intro";
     showScreen("intro");
