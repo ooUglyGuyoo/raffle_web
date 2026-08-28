@@ -100,6 +100,16 @@ for key, (x0, y0, x1, y1) in tiles.items():
     tile.save(f"/tmp/logo_proc_{key}.png")   # 供检查
     print(f"logo {key}: {tile.size}")
 
+# 浙江/湖南青年会 logo: 独立文件,白底 -> 透明,保留品牌色
+for key, fname in (("香港浙江青年会", "zhejiang.jpg"), ("香港湖南青年会", "hunan.jpg")):
+    lg = Image.open(os.path.join(SRC, "logos", fname)).convert("RGB")
+    lg = white_to_alpha(lg)
+    lg = trim_alpha(lg)
+    lg.thumbnail((1000, 140), Image.LANCZOS)
+    logos[key] = b64img(lg, "PNG")
+    lg.save(f"/tmp/logo_proc_{key}.png")
+    print(f"logo {key}: {lg.size}")
+
 # ---------- 2) prize images ----------
 prize_map = [
     ("抽湿机",                          "prizes/dehumidifier.jpg",       (400, 300)),
@@ -114,6 +124,12 @@ prize_map = [
     ("蒙牛牛奶",                          "prizes/milk.png",               (400, 300)),
     ("三合一充电线",                       "prizes/charging-cable.png",    (400, 300)),
     ("科大图书馆擦镜布",                   "prizes/lens-cloth.png",         (400, 300)),
+    ("华为 FreeClip 2",                   "prizes/huawei-freeclip2.jpg",  (400, 300)),
+    ("湖笔毛笔套装",                        "prizes/hubi-brushes.jpg",      (400, 300)),
+    ("小米手环 10 Pro",                    "prizes/xiaomi-band10pro.jpg",  (400, 300)),
+    ("铁皮石斛粉",                          "prizes/dendrobium.jpg",        (400, 300)),
+    ("马头岩肉桂",                          "prizes/rougui-tea.jpg",        (400, 300)),
+    ("九宇抹茶",                            "prizes/matcha.jpg",            (400, 300)),
 ]
 prizes = {}
 for name, path, box in prize_map:
