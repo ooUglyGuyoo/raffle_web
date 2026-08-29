@@ -204,8 +204,17 @@ main { flex:1; display:flex; flex-direction:column; align-items:center; justify-
 }
 @keyframes winPop { 0%{transform:scale(.2); opacity:0} 100%{transform:scale(1); opacity:1} }
 
-/* 抽奖按钮(鼠标备用,与提示并排,不占 main 布局) */
-#draw-btn { font-size:19px; padding:7px 22px; letter-spacing:3px; margin-left:22px; flex:none; }
+/* 右下角"下一步"按钮(工作人员鼠标专用,功能=空格) */
+#btn-next {
+  position:absolute; right:36px; bottom:26px; z-index:50;
+  font-family:inherit; font-size:22px; font-weight:800; letter-spacing:3px;
+  color:#ffd97a; background:rgba(40,16,80,.62); border:2px solid rgba(255,217,122,.55);
+  border-radius:14px; padding:9px 26px; cursor:pointer;
+  box-shadow:0 6px 24px rgba(0,0,0,.4); transition:all .2s;
+  backdrop-filter:blur(2px);
+}
+#btn-next:hover { background:rgba(80,40,140,.8); border-color:#ffd97a; box-shadow:0 0 24px rgba(255,217,122,.35); }
+#btn-next.hidden { display:none; }
 
 /* 谢幕 */
 #screen-closing { flex:1; min-height:0; justify-content:center; }
@@ -310,12 +319,12 @@ footer { flex:none; padding:18px 0 26px; display:flex; align-items:center; justi
     </main>
 
     <footer>
-      <button class="btn hidden" id="draw-btn">开 始 抽 奖</button>
       <button class="btn btn-small hidden" id="btn-export-txt">导出名单 (.txt)</button>
       <button class="btn btn-small hidden" id="btn-export-csv">导出名单 (.csv)</button>
       <div id="mute-hint" class="hidden"></div>
     </footer>
-
+    <button class="btn-next" id="btn-next" title="下一步(等同于按空格)">下一步 ▸</button>
+  </div>
   </div>
 </div>
 
@@ -453,6 +462,9 @@ function showScreen(name){
   screens[name].classList.remove("hidden");
   if (name === "game") roundBadge.classList.remove("hidden");
   else roundBadge.classList.add("hidden");
+  // 右下角"下一步"按钮:谢幕页为终态,隐藏
+  const bn = $("btn-next");
+  if (bn) bn.classList.toggle("hidden", name === "closing");
 }
 function setHint(){ /* 提示行已按要求移除 */ }
 function clearHint(){}
@@ -636,7 +648,6 @@ function renderRound(n){
   });
   phase = "idle";
   setHint(`按 <span class="key">空格</span> 开始第 ${["一","二","三","四"][n-1]} 轮抽奖`);
-  $("draw-btn").classList.remove("hidden");
 }
 
 /* ================= 滚动抽奖动画 ================= */
@@ -700,7 +711,6 @@ function startRoll(){
   if (curRound >= 1 && S.drawn.some(d => d.round === curRound)) return;
   const round = ROUNDS[curRound - 1];
   const reveal = prizeCardsRevealOrder(round);
-  $("draw-btn").classList.add("hidden");
   setHint("正在抽取…");
   phase = "rolling";
   curTierIdx = 0;
@@ -940,7 +950,8 @@ function init(){
   $("btn-ranges-edit").addEventListener("click", () => renderRanges(true));
   $("btn-ranges-save").addEventListener("click", saveRanges);
   $("btn-ranges-cancel").addEventListener("click", () => renderRanges(false));
-  $("draw-btn").addEventListener("click", () => { if (unlocked) advance(); });
+  // 右下角"下一步"按钮(鼠标操作,功能=空格)
+  $("btn-next").addEventListener("click", () => advance());
   $("btn-reset").addEventListener("click", () => {
     if (!confirm("确定重置本场记录?已抽取的号码将被清空,可重新开始。")) return;
     resetAll();
