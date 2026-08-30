@@ -766,7 +766,6 @@ let AC = null, muted = false;
 function ensureAudio(){
   if (AC) { if (AC.state === "suspended") AC.resume(); return; }
   AC = new (window.AudioContext || window.webkitAudioContext)();
-  startBGM();
 }
 function tickSound(){
   if (!AC || muted) return;
@@ -790,35 +789,6 @@ function winSound(){
     o.start(t); o.stop(t + 0.55);
   });
 }
-/* 背景音乐:轻柔和弦 Pad 循环 */
-const CHORDS = [
-  [130.81, 164.81, 196.00, 246.94],   // Cmaj7
-  [110.00, 164.81, 196.00, 261.63],   // Am7
-  [174.61, 220.00, 261.63, 329.63],   // Fmaj7
-  [98.00, 146.83, 196.00, 246.94],    // G
-];
-let bgmTimer = null;
-function startBGM(){
-  let ci = 0;
-  const playChord = () => {
-    if (!AC || muted) return;
-    const now = AC.currentTime;
-    const g = AC.createGain();
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.linearRampToValueAtTime(0.035, now + 1.6);
-    g.gain.linearRampToValueAtTime(0.0001, now + 3.9);
-    g.connect(AC.destination);
-    CHORDS[ci % CHORDS.length].forEach(f => {
-      const o = AC.createOscillator();
-      o.type = "sine"; o.frequency.value = f;
-      o.connect(g); o.start(now); o.stop(now + 4.2);
-    });
-    ci++;
-  };
-  playChord();
-  bgmTimer = setInterval(playChord, 4000);
-}
-
 /* ================= 导出 ================= */
 function buildRecords(){
   const rows = [];
