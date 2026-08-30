@@ -138,14 +138,24 @@ for name, path, box in prize_map:
     prizes[name] = b64img(im, "JPEG", 80)
     print(f"prize {name!r}: {im.size} {len(prizes[name])//1024}KB")
 
-# ---------- 3) inject (idempotent) ----------
+# ---------- 3) BGM (base64 mp3) ----------
+bgm_path = os.path.join(SRC, "bgm_loop.mp3")
+if os.path.exists(bgm_path):
+    bgm_b64 = base64.b64encode(open(bgm_path, "rb").read()).decode()
+    print(f"bgm: {len(bgm_b64)//1024}KB base64")
+else:
+    bgm_b64 = ""
+    print("bgm: NOT FOUND")
+
+# ---------- 4) inject (idempotent) ----------
 import re
 html = open(HTML).read()
-html = re.sub(r'const (?:PRIZE_IMG|LOGO_IMG) = .*?;\n', '', html, flags=re.S)
+html = re.sub(r'const (?:PRIZE_IMG|LOGO_IMG|BGM_B64) = .*?;\n', '', html, flags=re.S)
 prize_js = "const PRIZE_IMG = " + json.dumps(prizes, ensure_ascii=False) + ";\n"
 logo_js = "const LOGO_IMG = " + json.dumps(logos, ensure_ascii=False) + ";\n"
+bgm_js = "const BGM_B64 = " + json.dumps(bgm_b64) + ";\n"
 marker = "/* ================= 图片素材(注入) ================= */"
 assert marker in html
-html = html.replace(marker, marker + "\n" + prize_js + logo_js)
+html = html.replace(marker, marker + "\n" + prize_js + logo_js + bgm_js)
 open(HTML, "w").write(html)
 print("INJECTED. final size:", os.path.getsize(HTML), "bytes")
